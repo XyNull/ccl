@@ -1,30 +1,37 @@
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.System;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Scanner;
 
 public class Main {        
 	private static String Usage =
-			"Utility for counting code line's count.\n" +
-					"Usage: ccl <RootFolder> <Suffix> [<Suffix>,...] [<Options>]\n\n" +
+			"Multifunction file manager .\n" +
+					//"Usage: <ChooseFunction> <RootFolder> <Addons> [<Suffix>,<FileName>,...] [<Options>]\n\n" +
+					"Function:\n" +
+					"CountLines or CL    for counting code line's count.\n" +
+					"CountBytes or CB    for counting files' size by paths.\n"+
+					"SearchFile or SF    for searching specific file.\n\n"+
 					"RootFolder: Folder to count.\n" + 
 					"ex. D:\\LeetCode \n\n" + 
-					"Suffix: Suffix of code file.Start with '.'.\n" +
-					"ex. 。java 。cpp 。cs \n\n" +
+					"Addons:\n"+
+					"Suffix: Suffix of code file.Start with '.' for CountLines.\n" +
+					"ex. 。java 。cpp 。cs \n" +
+					"FileName: The name of what you search with or without suffix or only suffix.\n"+
+					"ex. test.txt or test or .avi\n\n"+
 					"Options:\n" +
 					"-I    Ignore blank files & path in log.\n" +
 					"-V    Show process log.\n\n" +
-					"PS.Ignoring blank lines is default\n";
+					"PS.Ignoring blank lines is default\n\n";
+	private static String addonsUsage = 
+			"please input the addons (separated by enter):" +
+			"input \"over\" to end";
 	
     private static String rootFolder;
 
@@ -34,15 +41,8 @@ public class Main {
 
     private static boolean verbose = false;
     
-    public static boolean ProcessArguments(String[] args){
-        if (args.length < 1)
-            return false;
-
-        if(args[0].charAt(args[0].length()-1) != '\\') 
-        	rootFolder = args[0];
-        else 
-        	rootFolder = args[0].substring(0, args[0].length()-2);
-        
+    public static void forCL(List<String> args){
+    	//progress arguments for CL
         for(String str : args){
         	if(str.startsWith("."))
         		suffixs.add(str);
@@ -51,23 +51,56 @@ public class Main {
         	if(str.equals("-I"))
         		ignoreBlank = true;
         }
-
-        return true;
-        }
+    }
     
     public static void main(String[] args){
-        long start = new Date().getTime();
-
-        if (!ProcessArguments(args))
-        {
-        	System.out.println(Usage);
-            return;
+    	long start = 0;
+    	System.out.println(Usage);
+    	
+    	System.out.println("please input rootFolder:\n");
+        Scanner in = new Scanner(System.in);
+    	String rf = in.nextLine();
+    	
+        //progress rootFolder
+        if(rf.charAt(rf.length()-1) != '\\')
+        	rootFolder = rf;
+        else
+        	rootFolder = rf.substring(0, rf.length()-2);
+    	
+        System.out.println("please choose the funtion:");
+    	String function = in.nextLine();
+    	
+        //progress addons by each function
+        if(function.equals("CL") || function.equals("CountLines")){
+        	System.out.println(addonsUsage);
+        	
+        	List<String> addons = new ArrayList<String>();
+        	while(in.hasNext()) {
+        		if(in.nextLine().equals("over")) break;
+        		addons.add(in.nextLine());
+        	}
+        	in.close();
+        	
+        	forCL(addons);
+            start = new Date().getTime();
+            System.out.println("Total:" + VisitDirectory(rootFolder) + " line(s).");
         }
-         
-        System.out.println("Total:" + VisitDirectory(rootFolder) + " line(s).");
+        
+        else if(function.equals("CB") || function.equals("CountBytes")){
+        	
+            start = new Date().getTime();
+        }
+        else if(function.equals("SF") || function.equals("SearchFile")){
+        	
+        }
+        else {
+        	System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nAttetion:input error,please input again.\n");
+    		main(new String[1]);
+    		return;
+        }
         
         long time = new Date().getTime() - start;
-
+        
         System.out.println("Time: " + time + "ms.");
     }
     
@@ -99,7 +132,7 @@ public class Main {
 	
 	public static int VisitDirectory(String path){
         try{
-            String[] dirs = GetDirectories(path);
+            String[] dirs = getDirectories(path);
             int count=0; 
             for(int i = 0; i < dirs.length; i++)
             {
@@ -110,7 +143,7 @@ public class Main {
             
             for(int i = 0; i < files.length; i++)
             {
-            	if(FilePicker(files[i].getName()))
+            	if(suffixPicker(files[i].getName()))
             		count += VisitFile(files[i].toString());
             }
 
@@ -131,7 +164,7 @@ public class Main {
         }
 	}
 	
-	public static boolean FilePicker(String name) {
+	public static boolean suffixPicker(String name) {
 		for(String suf : suffixs){
 			if (name.toLowerCase().endsWith(suf))
 				return true;
@@ -139,7 +172,7 @@ public class Main {
 		return false;
 	}
 	
-	public static String[] GetDirectories(String path) {
+	public static String[] getDirectories(String path) {
 		if (!pathIsEmpty(path)) {
 			return null;
 		}

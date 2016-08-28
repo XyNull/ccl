@@ -22,9 +22,9 @@ public class Main {
 					"Suffix: Suffix of code file.Start with '.'.\n" +
 					"ex. ¡£java ¡£cpp ¡£cs \n\n" +
 					"Options:\n" +
-					"-I    Ignore blank files & path.\n" +
+					"-I    Ignore blank files & path in log.\n" +
 					"-V    Show process log.\n\n" +
-					"PS.Ignore blank lines is default\n";
+					"PS.Ignoring blank lines is default\n";
 	
     private static String rootFolder;
 
@@ -72,7 +72,7 @@ public class Main {
     }
     
 	public static int VisitFile(String path){
-    	Charset cs = Charset.forName("UTF-8");
+    	Charset cs = Charset.defaultCharset();
     	Path p = Paths.get(path);
     	
         try{
@@ -115,8 +115,8 @@ public class Main {
             }
 
             if (verbose)
-            {
-            	System.out.println(path.toString() + " -- " + count +" line(s).");
+            {	if((ignoreBlank && count != 0) || !ignoreBlank)
+            		System.out.println(path.toString() + " -- " + count +" line(s).");
             }
             return count;
         }
